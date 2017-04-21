@@ -27,6 +27,9 @@ with open(pickle_file, 'rb') as f:
 # train_labels  = train_labels[:384]
 # print('Overfit training set: ', train_dataset.shape, train_labels.shape)
 
+
+# Best multi-layer result so far: 94% test accuracy (2 hidden layers, regularized)
+
 image_size = 28
 num_labels = 10
 
@@ -49,8 +52,8 @@ def accuracy(predictions, labels):
 
 # Stocastic Gradient Descent
 batch_size     = 128
-hidden_units_1 = 1024 
-hidden_units_2 = 1024 
+hidden_units_1 = 200 
+hidden_units_2 = 200 
 
 graph = tf.Graph()
 with graph.as_default():
@@ -66,11 +69,11 @@ with graph.as_default():
   weights_1 = tf.Variable(tf.truncated_normal([image_size * image_size, hidden_units_1]))
   biases_1  = tf.Variable(tf.zeros([hidden_units_1]))
 
-  weights_2 = tf.Variable(tf.truncated_normal([hidden_units_1, num_labels]))
-  biases_2  = tf.Variable(tf.zeros([num_labels]))
+  weights_2 = tf.Variable(tf.truncated_normal([hidden_units_1, hidden_units_2]))
+  biases_2  = tf.Variable(tf.zeros([hidden_units_2]))
 
-  # weights_3 = tf.Variable(tf.truncated_normal([hidden_units_2, num_labels]))
-  # biases_3  = tf.Variable(tf.zeros([num_labels]))
+  weights_3 = tf.Variable(tf.truncated_normal([hidden_units_2, num_labels]))
+  biases_3  = tf.Variable(tf.zeros([num_labels]))
 
   # Training computation
   # Plain logistic regression: 89.2% on test with l2 weight = 0.002
@@ -80,30 +83,31 @@ with graph.as_default():
   test_logits_1  = tf.matmul(tf_test_dataset,  weights_1) + biases_1
 
   # First nonlinear layer
-  # train_logits_2 = tf.nn.dropout(tf.nn.relu(train_logits_1), 0.20)
+  # train_logits_1r = tf.nn.dropout(tf.nn.relu(train_logits_1), 0.30)
   train_logits_1r = tf.nn.relu(train_logits_1)
   valid_logits_1r = tf.nn.relu(valid_logits_1)
   test_logits_1r  = tf.nn.relu(test_logits_1)
 
-  train_logits = tf.matmul(train_logits_1r, weights_2) + biases_2
-  valid_logits = tf.matmul(valid_logits_1r, weights_2) + biases_2
-  test_logits  = tf.matmul(test_logits_1r,  weights_2) + biases_2
+  train_logits_2 = tf.matmul(train_logits_1r, weights_2) + biases_2
+  valid_logits_2 = tf.matmul(valid_logits_1r, weights_2) + biases_2
+  test_logits_2  = tf.matmul(test_logits_1r,  weights_2) + biases_2
 
   # Second nonlinear layer
-  # train_logits_2r = tf.nn.relu(train_logits_2)
-  # valid_logits_2r = tf.nn.relu(valid_logits_2)
-  # test_logits_2r  = tf.nn.relu(test_logits_2)
+  train_logits_2r = tf.nn.relu(train_logits_2)
+  valid_logits_2r = tf.nn.relu(valid_logits_2)
+  test_logits_2r  = tf.nn.relu(test_logits_2)
 
-  # train_logits = tf.matmul(train_logits_2r, weights_3) + biases_3
-  # valid_logits = tf.matmul(valid_logits_2r, weights_3) + biases_3
-  # test_logits  = tf.matmul(test_logits_2r, weights_3) + biases_3
+  train_logits = tf.matmul(train_logits_2r, weights_3) + biases_3
+  valid_logits = tf.matmul(valid_logits_2r, weights_3) + biases_3
+  test_logits  = tf.matmul(test_logits_2r, weights_3) + biases_3
 
-  loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_train_labels, logits=train_logits))
-  # loss = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_train_labels, logits=train_logits))
-  #          + 0.002 * (tf.nn.l2_loss(weights_1) + tf.nn.l2_loss(weights_2)))
+  # loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_train_labels, logits=train_logits))
+  loss = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_train_labels, logits=train_logits))
+          + 0.003 * (tf.nn.l2_loss(weights_1) + tf.nn.l2_loss(weights_2) + tf.nn.l2_loss(weights_3)))
 
   # Optimizer.
-  optimizer = tf.train.GradientDescentOptimizer(0.5).minimize(loss)
+  learning_rate = 0.06
+  optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
 
   # Predictions for the training, validation, and test data.
   train_prediction = tf.nn.softmax(train_logits)
@@ -112,7 +116,8 @@ with graph.as_default():
 
 
 # Minibatch training
-num_steps = 3001
+# num_steps = 3001
+num_steps = 20000
 
 with tf.Session(graph=graph) as session:
   tf.initialize_all_variables().run()
