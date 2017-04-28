@@ -52,9 +52,9 @@ def accuracy(predictions, labels):
 
 # Stocastic Gradient Descent
 batch_size     = 128
-hidden_units_1 = 20
-hidden_units_2 = 20
-hidden_units_3 = 20
+hidden_units_1 = 10
+hidden_units_2 = 10
+hidden_units_3 = 10
 
 graph = tf.Graph()
 with graph.as_default():
@@ -121,7 +121,7 @@ with graph.as_default():
   #                + tf.nn.l2_loss(weights_4)))
 
   # Optimizer.
-  learning_rate = 0.06
+  learning_rate = 0.10
   # global_step = tf.Variable(0)  # count the number of steps taken.
   # learning_rate = tf.train.exponential_decay(0.07, global_step, 30000, 0.95)
   # optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss, global_step=global_step)
