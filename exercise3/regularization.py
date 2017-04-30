@@ -86,11 +86,14 @@ with graph.as_default():
   valid_logits_1 = tf.matmul(tf_valid_dataset, weights_1) + biases_1
   test_logits_1  = tf.matmul(tf_test_dataset,  weights_1) + biases_1
 
+  # Tuning for dropout
+  dropout_keep_rate = 0.5
+
   # First nonlinear layer
   train_logits_1r = tf.nn.relu(train_logits_1)
+  # train_logits_1r = tf.nn.dropout(tf.nn.relu(train_logits_1), dropout_keep_rate)
   valid_logits_1r = tf.nn.relu(valid_logits_1)
   test_logits_1r  = tf.nn.relu(test_logits_1)
-  # train_logits_1r = tf.nn.dropout(tf.nn.relu(train_logits_1), 0.90)
 
   train_logits_2 = tf.matmul(train_logits_1r, weights_2) + biases_2
   valid_logits_2 = tf.matmul(valid_logits_1r, weights_2) + biases_2
@@ -98,6 +101,7 @@ with graph.as_default():
 
   # Second nonlinear layer
   train_logits_2r = tf.nn.relu(train_logits_2)
+  # train_logits_2r = tf.nn.dropout(tf.nn.relu(train_logits_2), dropout_keep_rate)
   valid_logits_2r = tf.nn.relu(valid_logits_2)
   test_logits_2r  = tf.nn.relu(test_logits_2)
 
@@ -107,6 +111,7 @@ with graph.as_default():
 
   # Third nonlinear layer
   train_logits_3r = tf.nn.relu(train_logits_3)
+  # train_logits_3r = tf.nn.dropout(tf.nn.relu(train_logits_3), dropout_keep_rate)
   valid_logits_3r = tf.nn.relu(valid_logits_3)
   test_logits_3r  = tf.nn.relu(test_logits_3)
 
@@ -121,7 +126,7 @@ with graph.as_default():
   #                + tf.nn.l2_loss(weights_4)))
 
   # Optimizer.
-  learning_rate = 0.10
+  learning_rate = 0.06
   # global_step = tf.Variable(0)  # count the number of steps taken.
   # learning_rate = tf.train.exponential_decay(0.07, global_step, 30000, 0.95)
   # optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss, global_step=global_step)
@@ -135,7 +140,7 @@ with graph.as_default():
 
 # Minibatch training
 # num_steps = 10000
-num_steps = 30000
+num_steps = 40000
 
 with tf.Session(graph=graph) as session:
   tf.initialize_all_variables().run()
