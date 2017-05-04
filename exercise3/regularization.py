@@ -28,8 +28,7 @@ with open(pickle_file, 'rb') as f:
 # print('Overfit training set: ', train_dataset.shape, train_labels.shape)
 
 
-# Best multi-layer result so far: 94% test accuracy (2 hidden layers, regularized)
-# Next approach: 3 hidden layers 
+# Best multi-layer result so far: 94.5% test accuracy (2 hidden layers, regularized)
 image_size = 28
 num_labels = 10
 
@@ -52,9 +51,13 @@ def accuracy(predictions, labels):
 
 # Stocastic Gradient Descent
 batch_size     = 128
-hidden_units_1 = 10
-hidden_units_2 = 10
-hidden_units_3 = 10
+hidden_units_1 = 300
+hidden_units_2 = 300
+# hidden_units_3 = 10
+
+# Tuning for dropout
+dropout_keep_rate = 0.5
+
 
 graph = tf.Graph()
 with graph.as_default():
@@ -73,11 +76,11 @@ with graph.as_default():
   weights_2 = tf.Variable(tf.truncated_normal([hidden_units_1, hidden_units_2]))
   biases_2  = tf.Variable(tf.zeros([hidden_units_2]))
 
-  weights_3 = tf.Variable(tf.truncated_normal([hidden_units_2, hidden_units_3]))
-  biases_3  = tf.Variable(tf.zeros([hidden_units_3]))
+  weights_3 = tf.Variable(tf.truncated_normal([hidden_units_2, num_labels]))
+  biases_3  = tf.Variable(tf.zeros([num_labels]))
 
-  weights_4 = tf.Variable(tf.truncated_normal([hidden_units_3, num_labels]))
-  biases_4  = tf.Variable(tf.zeros([num_labels]))
+  # weights_4 = tf.Variable(tf.truncated_normal([hidden_units_3, num_labels]))
+  # biases_4  = tf.Variable(tf.zeros([num_labels]))
 
   # Training computation
   # Plain logistic regression: 89.2% on test with l2 weight = 0.002
@@ -85,9 +88,6 @@ with graph.as_default():
   train_logits_1 = tf.matmul(tf_train_dataset, weights_1) + biases_1
   valid_logits_1 = tf.matmul(tf_valid_dataset, weights_1) + biases_1
   test_logits_1  = tf.matmul(tf_test_dataset,  weights_1) + biases_1
-
-  # Tuning for dropout
-  dropout_keep_rate = 0.5
 
   # First nonlinear layer
   train_logits_1r = tf.nn.relu(train_logits_1)
@@ -105,28 +105,28 @@ with graph.as_default():
   valid_logits_2r = tf.nn.relu(valid_logits_2)
   test_logits_2r  = tf.nn.relu(test_logits_2)
 
-  train_logits_3 = tf.matmul(train_logits_2r, weights_3) + biases_3
-  valid_logits_3 = tf.matmul(valid_logits_2r, weights_3) + biases_3
-  test_logits_3  = tf.matmul(test_logits_2r, weights_3) + biases_3
+  # Outputs
+  train_logits = tf.matmul(train_logits_2r, weights_3) + biases_3
+  valid_logits = tf.matmul(valid_logits_2r, weights_3) + biases_3
+  test_logits  = tf.matmul(test_logits_2r, weights_3) + biases_3
 
   # Third nonlinear layer
-  train_logits_3r = tf.nn.relu(train_logits_3)
+  # train_logits_3r = tf.nn.relu(train_logits_3)
   # train_logits_3r = tf.nn.dropout(tf.nn.relu(train_logits_3), dropout_keep_rate)
-  valid_logits_3r = tf.nn.relu(valid_logits_3)
-  test_logits_3r  = tf.nn.relu(test_logits_3)
+  # valid_logits_3r = tf.nn.relu(valid_logits_3)
+  # test_logits_3r  = tf.nn.relu(test_logits_3)
 
   # Outputs
-  train_logits = tf.matmul(train_logits_3r, weights_4) + biases_4
-  valid_logits = tf.matmul(valid_logits_3r, weights_4) + biases_4
-  test_logits  = tf.matmul(test_logits_3r, weights_4) + biases_4
+  # train_logits = tf.matmul(train_logits_3r, weights_4) + biases_4
+  # valid_logits = tf.matmul(valid_logits_3r, weights_4) + biases_4
+  # test_logits  = tf.matmul(test_logits_3r, weights_4) + biases_4
 
-  loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_train_labels, logits=train_logits))
-  # loss = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_train_labels, logits=train_logits))
-  #       + 0.002 * (tf.nn.l2_loss(weights_1) + tf.nn.l2_loss(weights_2) + tf.nn.l2_loss(weights_3) 
-  #                + tf.nn.l2_loss(weights_4)))
+  # loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_train_labels, logits=train_logits))
+  loss = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_train_labels, logits=train_logits))
+              + 0.003 * (tf.nn.l2_loss(weights_1) + tf.nn.l2_loss(weights_2) + tf.nn.l2_loss(weights_3)))
 
   # Optimizer.
-  learning_rate = 0.06
+  learning_rate = 0.08
   # global_step = tf.Variable(0)  # count the number of steps taken.
   # learning_rate = tf.train.exponential_decay(0.07, global_step, 30000, 0.95)
   # optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss, global_step=global_step)
