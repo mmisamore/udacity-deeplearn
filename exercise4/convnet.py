@@ -75,13 +75,26 @@ with graph.as_default():
 
   # Model.
   def model(data):
-    conv = tf.nn.conv2d(data, layer1_weights, [1, 2, 2, 1], padding='SAME')
+    # conv = tf.nn.conv2d(data, layer1_weights, [1, 2, 2, 1], padding='SAME')
+    conv = tf.nn.max_pool(data, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
+    print('conv: ', conv.get_shape())
     hidden = tf.nn.relu(conv + layer1_biases)
-    conv = tf.nn.conv2d(hidden, layer2_weights, [1, 2, 2, 1], padding='SAME')
+    print('hidden: ', hidden.get_shape())
+    # conv:  (16, 14, 14, 16)
+    # hidden:  (16, 14, 14, 16)
+
+    # conv = tf.nn.conv2d(hidden, layer2_weights, [1, 2, 2, 1], padding='SAME')
+    conv = tf.nn.max_pool(hidden, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
+    print('conv: ' , conv.get_shape())
     hidden = tf.nn.relu(conv + layer2_biases)
+    print('hidden: ' , hidden.get_shape())
+    # conv:  (16, 7, 7, 16)
+    # hidden:  (16, 7, 7, 16)
+
     shape = hidden.get_shape().as_list()
     reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
     hidden = tf.nn.relu(tf.matmul(reshape, layer3_weights) + layer3_biases)
+
     return tf.matmul(hidden, layer4_weights) + layer4_biases
 
   # Training computation.
