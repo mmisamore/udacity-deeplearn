@@ -28,7 +28,7 @@ with open(pickle_file, 'rb') as f:
 # print('Overfit training set: ', train_dataset.shape, train_labels.shape)
 
 
-# Best multi-layer result so far: 94.5% test accuracy (2 hidden layers, regularized)
+# Best multi-layer result so far: 95.2% test accuracy (2 hidden layers, regularized)
 image_size = 28
 num_labels = 10
 
@@ -123,7 +123,7 @@ with graph.as_default():
 
   # loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_train_labels, logits=train_logits))
   loss = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_train_labels, logits=train_logits))
-              + 0.003 * (tf.nn.l2_loss(weights_1) + tf.nn.l2_loss(weights_2) + tf.nn.l2_loss(weights_3)))
+              + 0.0015 * (tf.nn.l2_loss(weights_1) + tf.nn.l2_loss(weights_2) + tf.nn.l2_loss(weights_3)))
 
   # Optimizer.
   learning_rate = 0.08
